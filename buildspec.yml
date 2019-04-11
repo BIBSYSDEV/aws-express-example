@@ -6,8 +6,6 @@ phases:
       # Upgrade AWS CLI to the latest version
       - pip install --upgrade awscli
       - apt-get update -y
-      - apt-get install -y curl python-software-properties
-      - curl -sL https://deb.nodesource.com/setup_10.x | bash -
       - apt-get install -y nodejs npm
       - npm config set strict-ssl false
       - npm install npm -g
