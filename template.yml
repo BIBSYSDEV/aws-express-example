@@ -97,10 +97,10 @@ Resources:
   Init:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.helloMessage
+      Handler: index.helloHandler
       InlineCode: >
         var AWS = require('aws-sdk');
-        exports.helloMessage = function(event, context) {
+        exports.helloHandler = function(event, context) {
 
             var codepipeline = new AWS.CodePipeline();
                 // Retrieve the Job ID from the Lambda action
@@ -137,33 +137,32 @@ Resources:
             Resource: "arn:aws:iam::*:role/aws-service-role/*"
       MemorySize: 256
       Timeout: 900
-
   Destroy:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.helloMessage
+      Handler: index.helloHandler
       InlineCode: >
         var AWS = require('aws-sdk');
-        exports.helloMessage = function(event, context) {
+        exports.helloHandler = function(event, context) {
 
-              var codepipeline = new AWS.CodePipeline();
-                  // Retrieve the Job ID from the Lambda action
-              var jobId = event["CodePipeline.job"].id;
+            var codepipeline = new AWS.CodePipeline();
+                // Retrieve the Job ID from the Lambda action
+            var jobId = event["CodePipeline.job"].id;
 
-              var putJobSuccess = function(message) {
-                  var params = {
-                      jobId: jobId
-                  };
-                  codepipeline.putJobSuccessResult(params, function(err, data) {
-                      if(err) {
-                          context.fail(err);
-                      } else {
-                          context.succeed(message);
-                      }
-                  });
-              };
-              putJobSuccess('Lambda function success');
-          };
+            var putJobSuccess = function(message) {
+                var params = {
+                    jobId: jobId
+                };
+                codepipeline.putJobSuccessResult(params, function(err, data) {
+                    if(err) {
+                        context.fail(err);
+                    } else {
+                        context.succeed(message);
+                    }
+                });
+            };
+            putJobSuccess('Lambda function success');
+        };
 
       FunctionName:  !Ref DestroyFunctionName
       Runtime: nodejs8.10
@@ -171,13 +170,13 @@ Resources:
         Version: '2012-10-17'
         Statement:
           - Action:
-            - lambda:InvokeFunction
-            - codepipeline:PutJobFailureResult
-            - codepipeline:PutJobSuccessResult
+              - lambda:InvokeFunction
+              - codepipeline:PutJobFailureResult
+              - codepipeline:PutJobSuccessResult
             Effect: Allow
             Resource: "*"
-          - Action: iam:CreateServiceLinkedRole
-            Effect: Allow
+          - Effect: Allow
+            Action: iam:CreateServiceLinkedRole
             Resource: "arn:aws:iam::*:role/aws-service-role/*"
-        MemorySize: 256
-        Timeout: 900
+      MemorySize: 256
+      Timeout: 900
