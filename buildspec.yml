@@ -5,6 +5,8 @@ phases:
     commands:
       # Upgrade AWS CLI to the latest version
       - pip install --upgrade awscli
+      - apt-get update -y
+      - apt-get install nodejs npm
       - npm install
 
   build:
