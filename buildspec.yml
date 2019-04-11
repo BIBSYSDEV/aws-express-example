@@ -9,7 +9,7 @@ phases:
       - apt-get install -y curl python-software-properties
       - curl -sL https://deb.nodesource.com/setup_11.x | bash -
       - apt-get update -y
-      - apt-get install -y node npm
+      - apt-get install -y nodejs npm
       - npm config set strict-ssl false
       - npm install npm -g
       - npm install
