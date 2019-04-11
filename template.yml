@@ -30,10 +30,8 @@ Resources:
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
-      DefinitionUri: ./simple-proxy-api.yaml
+      Name: !Join ['-',[!Ref ProjectId, !Ref Branch, !Ref Stage]]
       StageName: !Ref Stage
-      Variables:
-        ServerlessExpressLambdaFunctionName: !Ref SampleFunction
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -183,40 +181,3 @@ Resources:
             Resource: "arn:aws:iam::*:role/aws-service-role/*"
         MemorySize: 256
         Timeout: 900
-
-Outputs:
-  LambdaFunctionConsoleUrl:
-    Description: Console URL for the Lambda Function.
-    Value: !Join
-      - ''
-      - - https://
-        - !Ref AWS::Region
-        - ".console.aws.amazon.com/lambda/home?region="
-        - !Ref AWS::Region
-        - "#/functions/"
-        - !Ref YOUR_SERVERLESS_EXPRESS_LAMBDA_FUNCTION_NAME
-
-  ApiGatewayApiConsoleUrl:
-    Description: Console URL for the API Gateway API's Stage.
-    Value: !Join
-      - ''
-      - - https://
-        - !Ref AWS::Region
-        - ".console.aws.amazon.com/apigateway/home?region="
-        - !Ref AWS::Region
-        - "#/apis/"
-        - !Ref ApiGatewayApi
-        - "/stages/prod"
-
-  ApiUrl:
-    Description: Invoke URL for your API. Clicking this link will perform a GET request
-      on the root resource of your API.
-    Value: !Join
-      - ''
-      - - https://
-        - !Ref ApiGatewayApi
-        - ".execute-api."
-        - !Ref AWS::Region
-        - ".amazonaws.com/prod/"
-
-
