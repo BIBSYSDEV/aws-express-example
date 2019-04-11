@@ -142,9 +142,9 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.helloMessage
-        InlineCode: >
-          var AWS = require('aws-sdk');
-          exports.helloMessage = function(event, context) {
+      InlineCode: >
+        var AWS = require('aws-sdk');
+        exports.helloMessage = function(event, context) {
 
               var codepipeline = new AWS.CodePipeline();
                   // Retrieve the Job ID from the Lambda action
