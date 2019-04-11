@@ -32,6 +32,7 @@ Resources:
     Properties:
       Name: !Join ['-',[!Ref ProjectId, !Ref Branch, !Ref Stage]]
       StageName: !Ref Stage
+      DefinitionUri: simple-proxy-api.yml
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
