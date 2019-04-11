@@ -10,6 +10,7 @@ phases:
       - curl -sL https://deb.nodesource.com/setup_10.x | -E bash -
       - apt-get install -y nodejs npm
       - npm config set strict-ssl false
+      - npm install npm -g
       - npm install
 
   build:
