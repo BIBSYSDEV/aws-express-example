@@ -1,0 +1,172 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Express Application/API powered by API Gateway and Lambda
+
+
+Parameters:
+  ProjectId:
+    Type: String
+    Description: Automatically generated ProjectId based on repository and branch
+  Stage:
+    Type: String
+    Description: Deployment stage. Either TEST or FINAL
+  Branch:
+    Type: String
+    Description: The Git branch
+  CodeBucket:
+    Type: String
+    Description: Automatically generated bucket where the code is stored
+  InitFunctionName:
+    Type: String
+    Description: Automatically generated name for the initialization function
+  DestroyFunctionName:
+    Type:  String
+    Description: Automatically generated name for the destroy function
+
+
+
+Resources:
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Join ['-',[!Ref ProjectId, !Ref Branch, !Ref Stage]]
+      StageName: !Ref Stage
+
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+#              - Effect: "Allow"
+#                Action: "*"
+#                Resource: "*"
+              - Effect: Allow
+                Action: apigateway:*
+                Resource: arn:aws:apigateway:*::*
+              - Effect: Allow
+                Action: execute-api:*
+                Resource: "*"
+
+
+  SampleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: lambda.handler
+      MemorySize: 1024
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: nodejs8.10
+      Timeout: 30
+      Events:
+        ProxyApiRoot:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /
+            Method: ANY
+        ProxyApiGreedy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /{proxy+}
+            Method: ANY
+  Init:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.helloHandler
+      InlineCode: >
+        var AWS = require('aws-sdk');
+        exports.helloHandler = function(event, context) {
+
+            var codepipeline = new AWS.CodePipeline();
+                // Retrieve the Job ID from the Lambda action
+            var jobId = event["CodePipeline.job"].id;
+
+            var putJobSuccess = function(message) {
+                var params = {
+                    jobId: jobId
+                };
+                codepipeline.putJobSuccessResult(params, function(err, data) {
+                    if(err) {
+                        context.fail(err);
+                    } else {
+                        context.succeed(message);
+                    }
+                });
+            };
+            putJobSuccess('Lambda function success');
+        };
+
+      FunctionName:  !Ref InitFunctionName
+      Runtime: nodejs8.10
+      Policies:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - lambda:InvokeFunction
+              - codepipeline:PutJobFailureResult
+              - codepipeline:PutJobSuccessResult
+            Effect: Allow
+            Resource: "*"
+          - Effect: Allow
+            Action: iam:CreateServiceLinkedRole
+            Resource: "arn:aws:iam::*:role/aws-service-role/*"
+      MemorySize: 256
+      Timeout: 900
+  Destroy:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.helloHandler
+      InlineCode: >
+        var AWS = require('aws-sdk');
+        exports.helloHandler = function(event, context) {
+
+            var codepipeline = new AWS.CodePipeline();
+                // Retrieve the Job ID from the Lambda action
+            var jobId = event["CodePipeline.job"].id;
+
+            var putJobSuccess = function(message) {
+                var params = {
+                    jobId: jobId
+                };
+                codepipeline.putJobSuccessResult(params, function(err, data) {
+                    if(err) {
+                        context.fail(err);
+                    } else {
+                        context.succeed(message);
+                    }
+                });
+            };
+            putJobSuccess('Lambda function success');
+        };
+
+      FunctionName:  !Ref DestroyFunctionName
+      Runtime: nodejs8.10
+      Policies:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - lambda:InvokeFunction
+              - codepipeline:PutJobFailureResult
+              - codepipeline:PutJobSuccessResult
+            Effect: Allow
+            Resource: "*"
+          - Effect: Allow
+            Action: iam:CreateServiceLinkedRole
+            Resource: "arn:aws:iam::*:role/aws-service-role/*"
+      MemorySize: 256
+      Timeout: 900
